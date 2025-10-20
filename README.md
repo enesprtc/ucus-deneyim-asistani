@@ -31,6 +31,7 @@ Bu proje, RAG (Retrieval-Augmented Generation) mimarisi üzerine kurulmuştur. K
 
 ## Elde Edilen Sonuçlar
 Geliştirilen asistan, seçilen havayolu özelinde sorulan sorulara, ilgili yolcu yorumlarından derlenmiş özet cevaplar üretebilmektedir. Örneğin:
+
 ![Emirates Kabin Ekibi Tutumu](images/web-arayuzu.png)
 
 ## Çalışma Kılavuzu
