@@ -94,7 +94,7 @@ st.title("✈️ Uçuş Deneyim Asistanı")
 # Ana başlığın altına, daha küçük puntoyla bir alt başlık ekliyorum.
 st.markdown("### Yapay zeka ile on binlerce yolcu yorumunu analiz eden Uçuş Deneyim Asistanı ile havayolları hakkında merak ettiğiniz her şeyi öğrenin!")
 # Kullanılan verinin tarih aralığı hakkında küçük bir bilgilendirme notu ekliyorum.
-st.caption("Not: Analiz edilen yolcu yorumları 2023 yılına kadar olan verileri kapsamaktadır.")
+st.caption("Not: Analiz edilen yolcu yorumları 2024 yılına kadar olan verileri kapsamaktadır.")
 
 # --- Arayüzü Ana Sütunlara Ayırma ---
 # Sayfayı iki ana sütuna ayırıyorum. Sol sütun (col1) daha geniş (2 birim),
@@ -205,4 +205,5 @@ footer_css = """
 </div>
 """
 # Hazırladığım CSS ve HTML'i sayfaya ekliyorum.
+
 st.markdown(footer_css, unsafe_allow_html=True)
