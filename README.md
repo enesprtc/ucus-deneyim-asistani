@@ -5,7 +5,7 @@ Akbank GenAI Bootcamp kapsamında geliştirilen RAG tabanlı bir chatbot projesi
 ## Projenin Amacı
 Bu projenin amacı, on binlerce doğrulanmış yolcu yorumunu kullanarak, belirli bir havayolu hakkında sorulan sorulara (koltuk konforu, yemek servisi, personel tutumu vb.) yapay zeka destekli özet cevaplar üretmektir. Kullanıcılar, merak ettikleri havayolunu seçip sorularını sorarak, o havayolu hakkındaki genel eğilimleri ve yolcu deneyimlerini hızlıca öğrenebilirler.
 
-## Veri Seti Hakkında Bilgi
+## Veri Seti
 Projede, Kaggle platformunda bulunan "[Airline Reviews](https://www.kaggle.com/datasets/juhibhojani/airline-reviews)" veri seti kullanılmıştır. Bu veri seti, farklı havayolları için yapılmış binlerce yolcu yorumunu içermektedir. Veri hazırlama aşamasında (`veri_hazirla.py`):
 * Sadece `Airline Name`, `Review_Title` ve `Review` sütunları alınmıştır.
 * Boş yorumlar temizlenmiştir.
