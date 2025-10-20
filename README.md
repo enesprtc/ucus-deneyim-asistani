@@ -38,7 +38,7 @@ Geliştirilen asistan, seçilen havayolu özelinde sorulan sorulara, ilgili yolc
 Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları izleyebilirsiniz:
 1.  **Repository'yi Klonlayın:**
     ```bash
-    git clone [https://github.com/KULLANICI_ADIN/REPO_ADIN.git](https://github.com/KULLANICI_ADIN/REPO_ADIN.git)
+    git clone [https://github.com/enesprtc/ucus-deneyim-asistani.git](https://github.com/enesprtc/ucus-deneyim-asistani.git)
     cd REPO_ADIN
     ```
 2.  **Sanal Ortam Oluşturun ve Aktive Edin:**
@@ -65,8 +65,8 @@ Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları i
 
 ## Product Kılavuzu (Web Arayüzü Kullanımı)
 Uygulamayı kullanmak oldukça basittir:
-1.  **Havayolunu Seçin:** Sol paneldeki "1. Havayolunu Seçin:" başlıklı açılır menüden hakkında bilgi almak istediğiniz havayolunu seçin.
-2.  **Sorunuzu Yazın:** "2. Sorunuzu Yazın:" başlıklı metin alanına merak ettiğiniz soruyu Türkçe veya İngilizce olarak yazın. (Örn: "Koltuklar rahat mıydı?", "How was the food service?")
+1.  **Havayolunu Seçin:** Sol paneldeki "Havayolunu Seçin:" başlıklı açılır menüden hakkında bilgi almak istediğiniz havayolunu seçin.
+2.  **Sorunuzu Yazın:** "Sorunuzu Yazın:" başlıklı metin alanına merak ettiğiniz soruyu Türkçe veya İngilizce olarak yazın. (Örn: "Koltuklar rahat mıydı?", "How was the food service?")
 3.  **Analiz Edin:** "Yorumları Analiz Et 🚀" butonuna tıklayın.
 4.  **Sonucu Görüntüleyin:** Kısa bir analiz süresinin ardından, asistanın bulduğu yorumlara dayanarak ürettiği özet cevap sol panelin altında görünecektir.
 * _(Buraya arayüzün ekran görüntüleri eklenebilir)_
