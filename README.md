@@ -1,6 +1,6 @@
 # ✈️ Uçuş Deneyimi Asistanı
 
-Akbank GenAI Bootcamp kapsamında geliştirilen RAG tabanlı bir chatbot projesidir.
+Akbank Generative AI Bootcamp kapsamında geliştirilen RAG tabanlı bir chatbot projesidir.
 
 ## Projenin Amacı
 Bu projenin amacı, on binlerce doğrulanmış yolcu yorumunu kullanarak, belirli bir havayolu hakkında sorulan sorulara (koltuk konforu, yemek servisi, personel tutumu vb.) yapay zeka destekli özet cevaplar üretmektir. Kullanıcılar, merak ettikleri havayolunu seçip sorularını sorarak, o havayolu hakkındaki genel eğilimleri ve yolcu deneyimlerini hızlıca öğrenebilirler.
