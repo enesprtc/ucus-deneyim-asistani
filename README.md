@@ -10,7 +10,7 @@ Projede, Kaggle platformunda bulunan "[Airline Reviews](https://www.kaggle.com/d
 * Sadece `Airline Name`, `Review_Title` ve `Review` sütunları alınmıştır.
 * Boş yorumlar temizlenmiştir.
 * `Review_Title` ve `Review` sütunları tek bir metin alanında birleştirilerek analiz için hazır hale getirilmiştir (`temiz_havayolu_yorumlari.csv`).
-* *Not: Analiz edilen yorumlar 2023 yılına kadar olan verileri kapsamaktadır.*
+* *Not: Analiz edilen yorumlar 2024 yılına kadar olan verileri kapsamaktadır.*
 
 ## Kullanılan Yöntemler (Çözüm Mimarisi)
 Bu proje, RAG (Retrieval-Augmented Generation) mimarisi üzerine kurulmuştur. Kullanılan temel teknolojiler şunlardır:
