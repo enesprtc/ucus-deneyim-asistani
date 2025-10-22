@@ -69,7 +69,6 @@ Uygulamayı kullanmak oldukça basittir:
 2.  **Sorunuzu Yazın:** "Sorunuzu Yazın:" başlıklı metin alanına merak ettiğiniz soruyu Türkçe veya İngilizce olarak yazın. (Örn: "Koltuklar rahat mıydı?", "How was the food service?")
 3.  **Analiz Edin:** "Yorumları Analiz Et 🚀" butonuna tıklayın.
 4.  **Sonucu Görüntüleyin:** Kısa bir analiz süresinin ardından, asistanın bulduğu yorumlara dayanarak ürettiği özet cevap sol panelin altında görünecektir.
-* _(Buraya arayüzün ekran görüntüleri eklenebilir)_
 
 ## Web Linki
 Uygulamanın canlı demosuna aşağıdaki linkten erişebilirsiniz:
