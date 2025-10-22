@@ -39,7 +39,7 @@ Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları i
 1.  **Repository'yi Klonlayın:**
     ```bash
     git clone [https://github.com/enesprtc/ucus-deneyim-asistani.git](https://github.com/enesprtc/ucus-deneyim-asistani.git)
-    cd REPO_ADIN
+    cd ucus-deneyim-asistani
     ```
 2.  **Sanal Ortam Oluşturun ve Aktive Edin:**
     ```bash
