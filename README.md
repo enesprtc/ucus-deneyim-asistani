@@ -72,4 +72,4 @@ Uygulamayı kullanmak oldukça basittir:
 
 ## Web Linki
 Uygulamanın canlı demosuna aşağıdaki linkten erişebilirsiniz:
-**(Buraya Streamlit Cloud'a deploy ettikten sonra alacağın link gelecek)**
+**https://ucus-deneyim-asistani.streamlit.app/**
