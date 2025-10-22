@@ -71,5 +71,5 @@ Uygulamayı kullanmak oldukça basittir:
 4.  **Sonucu Görüntüleyin:** Kısa bir analiz süresinin ardından, asistanın bulduğu yorumlara dayanarak ürettiği özet cevap sol panelin altında görünecektir.
 
 ## Web Linki
-Uygulamanın website linkine aşağıdaki linkten erişebilirsiniz:
+Uygulamanın canlı demosuna yandaki linkten erişebilirsiniz:
 **https://ucus-deneyim-asistani.streamlit.app/**
