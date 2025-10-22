@@ -1,8 +1,10 @@
 # --- Gerekli Kütüphaneler ---
 # pandas: Temizlenmiş CSV verimi okumak ve filtrelemek için. 'pd' kısaltmasıyla kullanacağım.
 import pandas as pd
-# dotenv: .env dosyasındaki gizli API anahtarımı güvenli bir şekilde yüklemek için.
-from dotenv import load_dotenv
+# streamlit: Streamlit Cloud'un Secrets özelliğinden API anahtarımı okumak için. 'st' kısaltmasıyla kullanacağım.
+import streamlit as st
+# google.generativeai: Google API anahtarını doğrudan yapılandırmak için. 'genai' kısaltmasıyla kullanacağım.
+import google.generativeai as genai
 # langchain_google_genai: Google'ın Gemini modellerini (Embedding ve Chat) LangChain ile kullanmamı sağlayan kütüphaneler.
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 # langchain_community.vectorstores: FAISS vektör veritabanını LangChain ile kullanmamı sağlayan kütüphane.
@@ -13,95 +15,90 @@ from langchain.prompts import PromptTemplate
 from langchain.docstore.document import Document
 
 # --- Genel Ayarlar ve Başlangıç Yüklemeleri ---
-# .env dosyasındaki değişkenleri (özellikle GOOGLE_API_KEY) ortam değişkeni olarak yüklüyorum.
-load_dotenv()
+# Streamlit Cloud Secrets'tan Google API anahtarını okuyorum.
+# Bu, .env dosyası yerine deploy edilen ortamda anahtarı güvenli bir şekilde almamı sağlar.
+try:
+    GOOGLE_API_KEY = st.secrets["AIzaSyBlmr-uVwxzJXwhQ9Exr04SaI5Jo5LWKY8"]
+    # Google'ın kendi kütüphanesini API anahtarıyla yapılandırıyorum.
+    # Bu, LangChain'in Google modellerini kullanabilmesi için genellikle gereklidir.
+    genai.configure(api_key=GOOGLE_API_KEY)
+    print("-> Google API Anahtarı Streamlit Secrets'tan başarıyla yüklendi ve yapılandırıldı.")
+except KeyError:
+    # Eğer Secrets içinde anahtar bulunamazsa, kullanıcıya hata gösterip duruyorum.
+    st.error("Google API Anahtarı (GOOGLE_API_KEY) Streamlit Secrets içinde tanımlanmamış!")
+    st.stop() # Uygulamanın çalışmasını durduruyorum.
+except Exception as e:
+    # Anahtar yapılandırması sırasında başka bir hata olursa onu da gösteriyorum.
+    st.error(f"Google API Anahtarı yapılandırılırken bir hata oluştu: {e}")
+    st.stop()
+
 # Temizlenmiş veriyi içeren CSV dosyamın adı.
 INPUT_FILENAME = "temiz_havayolu_yorumlari.csv"
 
 # --- ADIM 1: Ana Veri Setini Hafızaya Yükleme ---
 # Program ilk çalıştığında, tüm temiz yorumları bir kereye mahsus hafızaya (RAM) alıyorum.
-# Bu, her soru geldiğinde dosyayı tekrar tekrar okumaktan çok daha hızlıdır.
 print(f"'{INPUT_FILENAME}' okunuyor...")
 # Hata kontrolü: Eğer dosya bulunamazsa programı durduruyorum.
 try:
     # pandas ile temiz CSV dosyamı okuyup 'df_tum_yorumlar' DataFrame'ine yüklüyorum.
     df_tum_yorumlar = pd.read_csv(INPUT_FILENAME)
-    # Kaç yorum yüklendiğini kullanıcıya bildiriyorum.
     print(f"-> {len(df_tum_yorumlar)} adet yorum başarıyla hafızaya yüklendi.")
 except FileNotFoundError:
-    print(f"!!! HATA: '{INPUT_FILENAME}' dosyası bulunamadı. Lütfen 'veri_hazirla.py' script'ini çalıştırdığınızdan emin olun.")
-    # Dosya yoksa programın devam etmesinin anlamı yok, çıkıyorum.
-    exit()
+    # Streamlit arayüzünde hata göstermek için st.error kullanıyorum.
+    st.error(f"HATA: '{INPUT_FILENAME}' dosyası bulunamadı. Lütfen dosyanın reponuzda olduğundan emin olun.")
+    st.stop()
 
 # --- Embedding Modelini Hazırlama ---
 # Metinleri anlamsal parmak izlerine (vektörlere) dönüştürecek olan Google modelini başlatıyorum.
-# Bu modeli hem geçici veritabanı oluştururken hem de arama yaparken kullanacağım için en başta hazırlıyorum.
 print("Google Embedding Modeli hazırlanıyor...")
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-print("-> Embedding Modeli hazır.")
+try:
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    print("-> Embedding Modeli hazır.")
+except Exception as e:
+    st.error(f"Embedding modeli başlatılırken hata oluştu: {e}")
+    st.stop()
+
 
 # --- ADIM 2: Ana Chatbot Fonksiyonu ---
 # Bu fonksiyon, kullanıcıdan bir soru ve bir havayolu adı alıp, analiz sonucunu döndürecek.
+# Streamlit'in @st.cache_data decorator'ünü kullanarak FAISS index oluşturma işlemini hızlandırabiliriz,
+# ancak şimdilik basit tutmak için bunu eklemiyorum.
 def get_response(soru, havayolu_adi):
-    # Kullanıcıya hangi havayolu ve soru için işlem yapıldığını bildiriyorum.
     print(f"\n--- Yeni Sorgu ---")
     print(f"Havayolu: '{havayolu_adi}', Soru: '{soru}'")
 
     # --- Aşama 2.1: Havayoluna Göre Filtreleme ---
-    # İlk iş olarak, hafızadaki tüm yorumlar ('df_tum_yorumlar') içinden sadece
-    # kullanıcının seçtiği havayoluna ('havayolu_adi') ait olanları filtreliyorum.
     print(f"[Aşama 1] Sadece '{havayolu_adi}' için yorumlar filtreleniyor...")
-    # pandas DataFrame filtreleme: 'Airline Name' sütunu 'havayolu_adi' ile eşleşen satırları seçiyorum.
     df_filtrelenmis = df_tum_yorumlar[df_tum_yorumlar['Airline Name'] == havayolu_adi]
 
-    # Eğer filtreleme sonucunda hiç yorum bulunamazsa, kullanıcıya bilgi verip fonksiyondan çıkıyorum.
     if df_filtrelenmis.empty:
         return f"'{havayolu_adi}' için sistemde hiç yorum bulunamadı."
     
-    # Kaç adet yorum bulunduğunu bildiriyorum.
     print(f"-> {len(df_filtrelenmis)} adet yorum bulundu.")
 
     # --- Aşama 2.2: Geçici Arama Motorunu (FAISS Index) Oluşturma ---
-    # Sadece filtrelenmiş bu yorumları kullanarak, o anlık, küçük bir vektör veritabanı oluşturacağım.
     print("[Aşama 2] Filtrelenmiş yorumlar için geçici arama motoru oluşturuluyor...")
-    # LangChain'in Document formatına dönüştürmek için boş bir liste başlatıyorum.
-    documents = []
-    # Filtrelenmiş DataFrame'deki her bir satır için döngü başlatıyorum.
-    for index, row in df_filtrelenmis.iterrows():
-        # Her yorumu, içeriği ('birlesik_yorum') ve metadata'sı ('Airline Name') ile
-        # bir Document nesnesi olarak paketliyorum.
-        doc = Document(page_content=row['birlesik_yorum'], metadata={'Airline Name': row['Airline Name']})
-        # Oluşturduğum Document nesnesini listeye ekliyorum.
-        documents.append(doc)
+    documents = [Document(page_content=row['birlesik_yorum'], metadata={'Airline Name': row['Airline Name']}) for index, row in df_filtrelenmis.iterrows()]
     
-    # FAISS index'ini oluştururken hata oluşma ihtimaline karşı try-except kullanıyorum.
     try:
-        # FAISS.from_documents() metodu, verdiğim doküman listesini ve embedding modelini kullanarak
-        # hafızada (RAM'de) hızlı bir vektör veritabanı oluşturur.
         vector_store = FAISS.from_documents(documents, embeddings)
         print("-> Geçici arama motoru hazır.")
-    # Eğer embedding sırasında (örn. kota aşımı) bir hata olursa, kullanıcıya bilgi verip çıkıyorum.
     except Exception as e:
-        return f"Arama motoru oluşturulurken bir hata oluştu: {e}"
+        # Hata detayını loglamak (terminalde görmek) ve kullanıcıya genel bir mesaj vermek daha iyi olabilir.
+        print(f"FAISS index oluşturma hatası: {e}")
+        return "Yorumlar analiz edilirken bir sorun oluştu. Lütfen tekrar deneyin."
 
     # --- Aşama 2.3: Anlamsal Arama Yapma ---
-    # Artık elimde sadece ilgili havayolunun yorumlarını içeren küçük ve hızlı bir arama motoru var.
     print("[Aşama 3] Anlamsal arama yapılıyor...")
-    # vector_store.similarity_search() metodu, kullanıcının sorusuna ('soru') anlamsal olarak
-    # en çok benzeyen ilk 'k' adet dokümanı bulur. k=5 olarak ayarladım.
-    # Artık burada filtre kullanmama gerek yok, çünkü veritabanı zaten filtrelenmişti.
     relevant_docs = vector_store.similarity_search(soru, k=5)
     
-    # Eğer arama sonucunda hiç alakalı doküman bulunamazsa, kullanıcıya bilgi verip çıkıyorum.
     if not relevant_docs:
-        return "Bu havayolu ile ilgili belirttiğiniz konuda yeterli yorum bulunamadı."
+        # Bu durumda bulunan yorumlar içinde soruyla eşleşen bir şey bulunamamıştır.
+        return "Bu havayolu ile ilgili belirttiğiniz konuda yorum bulunsa da, sorunuzla doğrudan ilişkili bir detay tespit edilemedi."
 
     # --- Aşama 2.4: Gemini ile Cevap Üretme ---
-    # Arama sonucu bulunan doküman sayısını kullanıcıya bildiriyorum.
     print(f"-> {len(relevant_docs)} adet ilgili yorum bulundu. Gemini ile cevap üretiliyor...")
     
-    # Gemini'ye göndereceğim komutun (prompt) şablonunu hazırlıyorum.
-    # Bu şablon, Gemini'ye rolünü, görevini ve kullanması gereken kanıtları (context) anlatıyor.
     prompt_template = """
     SENARYO: Sen, yolcu yorumlarını analiz eden bir Uçuş Deneyimi Asistanısın. Görevin, sana sunulan KANITLARI kullanarak, kullanıcının sorduğu SORUYU cevaplamaktır. Cevapların kesinlikle ve sadece sana verilen KANITLARA dayanmalıdır. Cevabını nazik ve anlaşılır bir dille, bir paragraf halinde özetle.
 
@@ -114,40 +111,47 @@ def get_response(soru, havayolu_adi):
     CEVAP:
     """
     
-    # LangChain'in PromptTemplate'ini kullanarak şablonu bir nesneye dönüştürüyorum.
-    # input_variables, şablondaki {context} ve {question} alanlarını belirtir.
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
-    # Cevap üretecek olan Gemini modelini (LLM - Large Language Model) başlatıyorum.
-    # temperature=0.3, cevapların daha tutarlı ve daha az rastgele olmasını sağlar.
-    llm = ChatGoogleGenerativeAI(model="models/gemini-flash-latest", temperature=0.3) # Model adını teyit ettik.
-    # LangChain "zincirini" (chain) oluşturuyorum. '|' operatörü, prompt'un çıktısını LLM'in girdisi yapar.
-    chain = prompt | llm
-    # Arama sonucu bulduğum dokümanların ('relevant_docs') sadece metin içeriklerini ('page_content')
-    # alıp, aralarına ayraç koyarak tek bir metin bloğu ('context') haline getiriyorum.
-    context = "\n\n---\n\n".join([doc.page_content for doc in relevant_docs])
-    # Zinciri çalıştırıyorum! invoke() metodu, şablondaki yer tutucuları (context ve question)
-    # doldurur, prompt'u oluşturur, LLM'e gönderir ve cevabı alır.
-    response = chain.invoke({"context": context, "question": soru})
-    
-    # LLM'den gelen cevabın sadece metin içeriğini ('content') fonksiyondan döndürüyorum.
-    return response.content
+    # LLM'i burada, fonksiyon içinde tanımlamak yerine en başta tanımlamak daha verimli olabilir,
+    # ancak şimdilik burada bırakıyorum. Model adını teyit ettik.
+    try:
+        llm = ChatGoogleGenerativeAI(model="models/gemini-flash-latest", temperature=0.3)
+        chain = prompt | llm
+        context = "\n\n---\n\n".join([doc.page_content for doc in relevant_docs])
+        response = chain.invoke({"context": context, "question": soru})
+        return response.content
+    except Exception as e:
+        # Gemini'den cevap alırken oluşan hataları yakalıyorum.
+        print(f"Gemini cevap üretme hatası: {e}")
+        # Kullanıcıya daha açıklayıcı bir hata mesajı veriyorum.
+        if "API key not valid" in str(e):
+             return "Google API anahtarı geçersiz veya yanlış yapılandırılmış. Lütfen Streamlit Secrets ayarlarını kontrol edin."
+        elif "quota" in str(e).lower():
+             return "Google API kullanım kotası aşıldı. Lütfen bir süre sonra tekrar deneyin."
+        else:
+             return "Yapay zeka modeliyle iletişim kurulurken bir sorun oluştu."
+
 
 # --- ADIM 3: Doğrudan Çalıştırma Testi ---
-# Eğer bu script dosyası doğrudan çalıştırılırsa (başka bir dosya tarafından import edilmezse),
-# aşağıdaki kod bloğu çalışır. Bu, motorumu hızlıca test etmek için kullanışlıdır.
+# Bu blok, sadece script'i doğrudan 'python chatbot_engine.py' ile çalıştırdığımızda devreye girer.
+# Streamlit uygulamasını çalıştırırken bu kısım çalışmaz, bu yüzden burası test amaçlı kalabilir.
 if __name__ == '__main__':
-    # Test 1: Turkish Airlines için bir soru soruyorum.
-    soru1 = "How was the food and the seats?"
-    havayolu1 = "Turkish Airlines"
-    # get_response fonksiyonumu çağırıp cevabı alıyorum.
-    cevap1 = get_response(soru1, havayolu1)
-    # Aldığım cevabı ekrana yazdırıyorum.
-    print("\n--- CHATBOT CEVABI 1 ---\n", cevap1)
-
-    # Test 2: Pegasus Airlines için başka bir soru soruyorum.
-    soru2 = "What are the common complaints about the staff?"
-    havayolu2 = "Pegasus Airlines"
-    # get_response fonksiyonumu tekrar çağırıp cevabı alıyorum.
-    cevap2 = get_response(soru2, havayolu2)
-    # Aldığım ikinci cevabı da ekrana yazdırıyorum.
-    print("\n--- CHATBOT CEVABI 2 ---\n", cevap2)
+    # Streamlit Secrets burada çalışmayacağı için test bloğu hata verecektir.
+    # Lokal test için .env'den okuma yöntemini geçici olarak buraya ekleyebiliriz
+    # VEYA bu test bloğunu tamamen kaldırabiliriz, çünkü ana test arayüz üzerinden yapılacak.
+    print("\n--- LOKAL TEST BAŞLATILDI (Streamlit olmadan çalıştırıldığında) ---")
+    print("UYARI: Bu test, Streamlit Secrets yerine .env dosyasını kullanmayı gerektirebilir.")
+    # Lokal test için dotenv'ı burada tekrar yükleyebiliriz:
+    from dotenv import load_dotenv
+    load_dotenv()
+    local_api_key = os.getenv("GOOGLE_API_KEY") # os'u import etmeyi unutma: import os
+    if local_api_key:
+         genai.configure(api_key=local_api_key)
+         print("-> Lokal test için .env'den API anahtarı yüklendi.")
+         
+         soru1 = "How was the food and the seats?"
+         havayolu1 = "Turkish Airlines"
+         cevap1 = get_response(soru1, havayolu1)
+         print("\n--- CHATBOT CEVABI 1 ---\n", cevap1)
+    else:
+         print("-> Lokal test için .env dosyasında GOOGLE_API_KEY bulunamadı. Test atlanıyor.")
